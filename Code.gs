@@ -69,8 +69,10 @@ function setup() {
   // 社員番号・暗証番号の先頭の0が消えないよう文字列扱いにする
   emp.getRange('A:A').setNumberFormat('@');
   emp.getRange('D:D').setNumberFormat('@');
+  // 判定期（2026-04 など）が日付に自動変換されないよう文字列扱いにする
   ss.getSheetByName(SHEET_RECORDS).getRange('B:B').setNumberFormat('@');
-  ss.getSheetByName(SHEET_RESULTS).getRange('B:B').setNumberFormat('@');
+  ss.getSheetByName(SHEET_RECORDS).getRange('E:E').setNumberFormat('@');
+  ss.getSheetByName(SHEET_RESULTS).getRange('A:B').setNumberFormat('@');
 }
 
 function ensureSheet_(ss, name, headers) {
@@ -209,6 +211,14 @@ function fmtDate_(v) {
   return str_(v);
 }
 
+/** 判定期のセルを yyyy-MM の文字列にする（スプレッドシートが日付に変換していても読めるように） */
+function fmtPeriod_(v) {
+  if (v instanceof Date) {
+    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM');
+  }
+  return str_(v);
+}
+
 function readEmployees_() {
   var values = sheet_(SHEET_EMPLOYEES).getDataRange().getValues();
   var list = [];
@@ -249,7 +259,7 @@ function readRecords_(employeeId) {
       employeeId: id,
       name: str_(r[2]),
       date: date,
-      period: str_(r[4]) || periodOf(date),
+      period: fmtPeriod_(r[4]) || periodOf(date),
       systolic: Number(r[5]),
       diastolic: Number(r[6]),
       weight: Number(r[7]),
@@ -519,7 +529,7 @@ function exportPeriod_(period) {
   var values = sh.getDataRange().getValues();
   // 既存の同じ判定期の行を下から削除
   for (var i = values.length - 1; i >= 1; i--) {
-    if (str_(values[i][0]) === period) sh.deleteRow(i + 1);
+    if (fmtPeriod_(values[i][0]) === period) sh.deleteRow(i + 1);
   }
   var mark = function (v) { return v === null ? '判定なし' : v ? '○' : '×'; };
   var rows = summary.rows.map(function (r) {
