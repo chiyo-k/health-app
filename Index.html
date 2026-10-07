@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>健康記録</title>
+<style>
+:root{
+  --ground:#EEF2EE; --surface:#FFFFFF; --surface2:#F4F7F4; --line:#D3DCD4;
+  --ink:#15201A; --ink2:#55645A; --ink3:#86938A;
+  --brand:#1F7A4D; --brand-ink:#FFFFFF; --brand-bg:#E2F1E8;
+  --ok:#17803F; --ok-bg:#E3F3E8;
+  --ng:#B4231B; --ng-bg:#FBE7E5;
+  --na:#6B7570; --na-bg:#ECEFED;
+  --warn:#9A5B00; --warn-bg:#FCEFD9;
+  --c-sys:#C2412D; --c-dia:#D98A2B; --c-wt:#2462A8;
+  --shadow:0 1px 0 rgba(0,0,0,.04),0 6px 18px -12px rgba(0,0,0,.3);
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1411; --surface:#172019; --surface2:#1E2921; --line:#2B382F;
+    --ink:#E6EEE8; --ink2:#9EADA3; --ink3:#6E7C73;
+    --brand:#4CC383; --brand-ink:#08140D; --brand-bg:#15301F;
+    --ok:#52C47D; --ok-bg:#132A1B;
+    --ng:#F1685D; --ng-bg:#2E1613;
+    --na:#9AA59F; --na-bg:#202723;
+    --warn:#E3A44A; --warn-bg:#2D2111;
+    --c-sys:#EE7A62; --c-dia:#E9B25E; --c-wt:#6FA8EA;
+    --shadow:0 1px 0 rgba(0,0,0,.3),0 8px 22px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1411; --surface:#172019; --surface2:#1E2921; --line:#2B382F;
+  --ink:#E6EEE8; --ink2:#9EADA3; --ink3:#6E7C73;
+  --brand:#4CC383; --brand-ink:#08140D; --brand-bg:#15301F;
+  --ok:#52C47D; --ok-bg:#132A1B;
+  --ng:#F1685D; --ng-bg:#2E1613;
+  --na:#9AA59F; --na-bg:#202723;
+  --warn:#E3A44A; --warn-bg:#2D2111;
+  --c-sys:#EE7A62; --c-dia:#E9B25E; --c-wt:#6FA8EA;
+  --shadow:0 1px 0 rgba(0,0,0,.3),0 8px 22px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font-size:16px;line-height:1.6;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+  -webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+h1,h2,h3{margin:0;line-height:1.35}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px 48px}
+.top{position:sticky;top:0;z-index:10;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:720px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;border-radius:8px;background:var(--brand);color:var(--brand-ink);
+  display:grid;place-items:center;font-weight:800;flex:none}
+.brand{font-weight:700;font-size:15px;line-height:1.2}
+.brand small{display:block;font-weight:400;color:var(--ink2);font-size:12px}
+.who{margin-left:auto;font-size:13px;color:var(--ink2);text-align:right}
+.tabs{display:flex;gap:6px;margin:16px 0 4px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;
+  font-size:14px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:18px;margin-top:16px}
+.card h2{font-size:17px;margin-bottom:4px}
+.sub{color:var(--ink2);font-size:13px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:520px){.g3{grid-template-columns:1fr}}
+label.f{display:block;font-size:13px;color:var(--ink2)}
+label.f span{display:block;margin-bottom:4px}
+input[type=text],input[type=password],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);
+  font-size:17px;min-height:44px}
+textarea{font-size:15px;min-height:60px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:1px}
+.unit{position:relative}
+.unit input{padding-right:52px}
+.unit em{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;
+  color:var(--ink3);font-size:13px;pointer-events:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:8px;
+  padding:11px 18px;min-height:44px;background:var(--brand);color:var(--brand-ink);font-weight:700;
+  cursor:pointer;font-size:15px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.btn.small{min-height:34px;padding:6px 12px;font-size:13px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.block{width:100%}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg{border-radius:8px;padding:10px 12px;font-size:14px;margin-top:12px}
+.msg.err{background:var(--ng-bg);color:var(--ng)}
+.msg.ok{background:var(--ok-bg);color:var(--ok)}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg.info{background:var(--brand-bg);color:var(--ink)}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.ng{background:var(--ng-bg);color:var(--ng)}
+.pill.na{background:var(--na-bg);color:var(--na)}
+.pill.warn{background:var(--warn-bg);color:var(--warn)}
+.verdict{display:flex;align-items:center;gap:14px;padding:14px;border-radius:10px;margin-top:12px}
+.verdict.ok{background:var(--ok-bg)}
+.verdict.ng{background:var(--na-bg)}
+.verdict b{font-size:20px}
+.verdict .big{font-size:34px;line-height:1}
+.items{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+@media (max-width:520px){.items{grid-template-columns:1fr}}
+.item{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface2)}
+.item .k{font-size:13px;color:var(--ink2)}
+.item .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;margin:2px 0}
+.item .c{font-size:12px;color:var(--ink3)}
+.live{font-size:14px;color:var(--ink2);margin-top:8px;min-height:1.6em}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:12px;color:var(--ink2);font-weight:600;background:var(--surface2);position:sticky;top:0}
+td.n,th.n{text-align:right}
+.tblwrap{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:10px;max-height:70vh}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--surface2)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+@media (max-width:520px){.stats{grid-template-columns:1fr 1fr}}
+.stat{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--ink2)}
+.stat .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:13px;font-weight:500;color:var(--ink3)}
+.chart{width:100%;height:auto;display:block;margin-top:8px}
+.chart text{fill:var(--ink3);font-size:20px}
+.chart .grid line{stroke:var(--line)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}
+.crit{font-size:13px;color:var(--ink2);margin:8px 0 0;padding-left:1.2em}
+.crit li{margin:2px 0}
+.login{max-width:380px;margin:40px auto 0}
+.muted{color:var(--ink3)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;
+  border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{font-size:12px;color:var(--ink3);margin-top:28px;line-height:1.7}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="logo" aria-hidden="true">健</div>
+    <div class="brand">健康記録<small>マンホール商会 健康経営</small></div>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ログイン -->
+  <section id="view-login" class="login">
+    <div class="card">
+      <h2>ログイン</h2>
+      <p class="sub">経理担当者から配られた社員番号と暗証番号を入力してください。</p>
+      <form id="login-form" class="grid" style="margin-top:12px" autocomplete="off">
+        <label class="f"><span>社員番号</span><input type="text" id="login-id" inputmode="numeric" required></label>
+        <label class="f"><span>暗証番号</span><input type="password" id="login-pin" inputmode="numeric" required></label>
+        <button class="btn block" type="submit" id="login-btn">ログイン</button>
+      </form>
+      <div id="login-msg"></div>
+    </div>
+  </section>
+
+  <!-- ログイン後 -->
+  <section id="view-app" hidden>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="home" aria-selected="true">自分の記録</button>
+      <button class="tab" role="tab" data-tab="admin" id="tab-admin" hidden>管理（全員）</button>
+      <button class="tab" role="tab" data-tab="settings">暗証番号の変更</button>
+    </nav>
+
+    <!-- 自分の記録 -->
+    <div id="pane-home">
+      <div id="period-banner"></div>
+
+      <div class="card" id="result-card">
+        <h2 id="result-title">判定結果</h2>
+        <div id="result-body"></div>
+      </div>
+
+      <div class="card">
+        <h2>測定値を入力</h2>
+        <p class="sub">4月・10月に測った値が手当の判定に使われます。ほかの月も自由に記録できます。</p>
+        <form id="rec-form" class="grid" style="margin-top:12px">
+          <label class="f"><span>測定日</span><input type="date" id="f-date" required></label>
+          <div class="grid g2">
+            <label class="f"><span>血圧（上・収縮期）</span><span class="unit"><input type="number" id="f-sys" inputmode="numeric" min="60" max="260" required><em>mmHg</em></span></label>
+            <label class="f"><span>血圧（下・拡張期）</span><span class="unit"><input type="number" id="f-dia" inputmode="numeric" min="30" max="180" required><em>mmHg</em></span></label>
+          </div>
+          <div class="grid g2">
+            <label class="f"><span>体重</span><span class="unit"><input type="number" id="f-wt" inputmode="decimal" step="0.1" min="20" max="250" required><em>kg</em></span></label>
+            <label class="f"><span>身長</span><span class="unit"><input type="number" id="f-ht" inputmode="decimal" step="0.1" min="100" max="230" required><em>cm</em></span></label>
+          </div>
+          <div class="live" id="f-live" aria-live="polite"></div>
+          <label class="f"><span>メモ（任意）</span><textarea id="f-memo" maxlength="200" placeholder="例：朝起きてすぐ測定"></textarea></label>
+          <button class="btn block" type="submit" id="rec-btn">記録する</button>
+        </form>
+        <div id="rec-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>これまでの推移</h2>
+        <div id="history"></div>
+      </div>
+
+      <div class="card">
+        <h2>手当の基準</h2>
+        <p class="sub">4月・10月の測定で、次のうち<strong>1つでもクリア</strong>すれば手当の対象です。</p>
+        <ul class="crit" id="crit-list"></ul>
+        <p class="sub" style="margin-top:10px">基準は厚生労働省「標準的な健診・保健指導プログラム」の特定健診の判定値を参考にしています。</p>
+      </div>
+    </div>
+
+    <!-- 管理 -->
+    <div id="pane-admin" hidden>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2>判定期ごとの一覧</h2>
+          <label class="f" style="min-width:160px"><select id="adm-period" aria-label="判定期"></select></label>
+        </div>
+        <div class="stats" id="adm-stats"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn small" id="adm-export">「判定結果」シートに書き出す</button>
+          <button class="btn small ghost" id="adm-csv">CSVをダウンロード</button>
+          <label class="row" style="font-size:13px;gap:6px"><input type="checkbox" id="adm-only-missing">未提出のみ表示</label>
+        </div>
+        <div id="adm-msg"></div>
+        <div class="tblwrap"><table id="adm-table"></table></div>
+        <p class="sub" style="margin-top:8px">行をタップすると、その人の推移を表示します。</p>
+      </div>
+      <div class="card" id="adm-detail" hidden>
+        <div class="row" style="justify-content:space-between">
+          <h2 id="adm-detail-title"></h2>
+          <button class="btn small ghost" id="adm-detail-close">閉じる</button>
+        </div>
+        <div id="adm-detail-body"></div>
+      </div>
+    </div>
+
+    <!-- 暗証番号の変更 -->
+    <div id="pane-settings" hidden>
+      <div class="card">
+        <h2>暗証番号の変更</h2>
+        <form id="pin-form" class="grid" style="margin-top:12px" autocomplete="off">
+          <label class="f"><span>今の暗証番号</span><input type="password" id="pin-old" inputmode="numeric" required></label>
+          <label class="f"><span>新しい暗証番号（4〜8桁の数字）</span><input type="password" id="pin-new" inputmode="numeric" pattern="\d{4,8}" required></label>
+          <label class="f"><span>新しい暗証番号（確認）</span><input type="password" id="pin-new2" inputmode="numeric" required></label>
+          <button class="btn" type="submit">変更する</button>
+        </form>
+        <div id="pin-msg"></div>
+      </div>
+      <div class="row" style="margin-top:16px"><button class="btn ghost" id="logout">ログアウト</button></div>
+    </div>
+
+    <footer>
+      このアプリの数値は健康管理の目安です。診断ではありません。気になる数値が続くときは、医療機関や産業医にご相談ください。
+    </footer>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var state = { token: null, me: null, data: null, admin: null, criteria: null };
+
+  /* ---------- 共通 ---------- */
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function call(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      var r = google.script.run.withSuccessHandler(resolve).withFailureHandler(function (e) {
+        reject(new Error((e && e.message) || String(e)));
+      });
+      r[fn].apply(r, args);
+    });
+  }
+  function showMsg(el, type, text) { el.innerHTML = text ? '<div class="msg ' + type + '">' + esc(text) + '</div>' : ''; }
+  function busy(btn, on, label) {
+    if (on) { btn.dataset.label = btn.textContent; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + esc(label || '処理中'); }
+    else { btn.disabled = false; btn.textContent = btn.dataset.label || btn.textContent; }
+  }
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function fmtDate(s) { var p = String(s).split('-'); return p.length === 3 ? p[0] + '/' + Number(p[1]) + '/' + Number(p[2]) : s; }
+  function periodLabel(p) { var a = String(p).split('-'); return a[0] + '年' + Number(a[1]) + '月'; }
+  function bmiOf(w, h) { if (!w || !h) return null; var m = h / 100; return Math.round(w / (m * m) * 10) / 10; }
+  function pill(v, okText, ngText) {
+    if (v === null || v === undefined) return '<span class="pill na">判定なし</span>';
+    return v ? '<span class="pill ok">' + (okText || 'クリア') + '</span>' : '<span class="pill ng">' + (ngText || '未達') + '</span>';
+  }
+  function handleAuthError(err) {
+    if (/ログイン/.test(err.message)) { logout(true); showMsg($('login-msg'), 'err', err.message); return true; }
+    return false;
+  }
+
+  /* ---------- ログイン ---------- */
+  try { state.token = sessionStorage.getItem('hk_token'); } catch (e) {}
+
+  $('login-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = $('login-btn');
+    busy(btn, true, 'ログイン中');
+    showMsg($('login-msg'), '', '');
+    call('apiLogin', $('login-id').value, $('login-pin').value).then(function (res) {
+      state.token = res.token;
+      try { sessionStorage.setItem('hk_token', res.token); } catch (e) {}
+      $('login-pin').value = '';
+      return loadMine();
+    }).catch(function (err) {
+      showMsg($('login-msg'), 'err', err.message);
+    }).then(function () { busy(btn, false); });
+  });
+
+  function logout(silent) {
+    if (state.token && !silent) call('apiLogout', state.token).catch(function () {});
+    state.token = null; state.me = null; state.data = null; state.admin = null;
+    try { sessionStorage.removeItem('hk_token'); } catch (e) {}
+    $('view-app').hidden = true;
+    $('view-login').hidden = false;
+    $('who').textContent = '';
+  }
+  $('logout').addEventListener('click', function () { logout(false); });
+
+  /* ---------- タブ ---------- */
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () { selectTab(t.dataset.tab); });
+  });
+  function selectTab(name) {
+    document.querySelectorAll('.tab').forEach(function (t) { t.setAttribute('aria-selected', String(t.dataset.tab === name)); });
+    ['home', 'admin', 'settings'].forEach(function (n) { $('pane-' + n).hidden = n !== name; });
+    if (name === 'admin' && !state.admin) loadAdmin();
+  }
+
+  /* ---------- 自分の記録 ---------- */
+  function loadMine() {
+    return call('apiMyData', state.token).then(renderMine).catch(function (err) {
+      if (!handleAuthError(err)) showMsg($('rec-msg'), 'err', err.message);
+    });
+  }
+
+  function renderMine(data) {
+    state.data = data;
+    state.me = data.me;
+    state.criteria = data.criteria;
+    $('view-login').hidden = true;
+    $('view-app').hidden = false;
+    $('who').innerHTML = esc(data.me.name) + ' さん<br><span class="muted">社員番号 ' + esc(data.me.id) + '</span>';
+    $('tab-admin').hidden = !data.me.admin;
+
+    // 入力フォームの初期値
+    if (!$('f-date').value) $('f-date').value = todayStr();
+    $('f-date').max = todayStr();
+    var last = data.records[data.records.length - 1];
+    if (!$('f-ht').value) $('f-ht').value = data.me.height || (last && last.height) || '';
+    updateLive();
+
+    renderBanner(data);
+    renderResult(data);
+    renderHistory($('history'), data.records);
+    renderCriteria(data.criteria);
+  }
+
+  function renderBanner(data) {
+    var m = new Date().getMonth() + 1;
+    var html = '';
+    if (data.judgeMonths.indexOf(m) !== -1) {
+      html = data.currentSubmitted
+        ? '<div class="msg ok">' + esc(data.currentPeriodLabel) + 'の判定測定は提出済みです。測り直した場合は、もう一度記録すると新しい値で判定されます。</div>'
+        : '<div class="msg warn"><strong>今月は判定月です。</strong>' + esc(data.currentPeriodLabel) + '中に血圧・体重を測って記録してください。</div>';
+    } else {
+      var next = m < 4 ? '4月' : m < 10 ? '10月' : '来年4月';
+      html = '<div class="msg info">次の判定測定は<strong>' + next + '</strong>です。それまでの記録は任意です（推移の確認に使えます）。</div>';
+    }
+    $('period-banner').innerHTML = html;
+  }
+
+  function renderResult(data) {
+    var r = data.result, c = data.criteria;
+    if (!r) {
+      $('result-title').textContent = '判定結果';
+      $('result-body').innerHTML = '<p class="sub">まだ判定月（4月・10月）の記録がありません。</p>';
+      return;
+    }
+    $('result-title').textContent = r.periodLabel + 'の判定結果';
+    var rec = r.record;
+    var html = '<p class="sub">測定日 ' + esc(fmtDate(rec.date)) + '</p>';
+    html += r.eligible
+      ? '<div class="verdict ok"><span class="big">○</span><div><b>手当の対象です</b><div class="sub">' + r.clearCount + '項目クリア</div></div></div>'
+      : '<div class="verdict ng"><span class="big">−</span><div><b>今回は手当の対象外です</b><div class="sub">次回の判定に向けて、できることから続けましょう。</div></div></div>';
+
+    html += '<div class="items">';
+    html += '<div class="item"><div class="k">血圧</div><div class="v">' + rec.systolic + '/' + rec.diastolic + '</div>' +
+      pill(r.bpOk) + '<div class="c">基準：' + c.bpSystolicBelow + '/' + c.bpDiastolicBelow + '未満</div></div>';
+    html += '<div class="item"><div class="k">BMI</div><div class="v">' + r.bmi + '</div>' +
+      pill(r.bmiOk) + '<div class="c">基準：' + c.bmiMin + '以上' + c.bmiBelow + '未満</div></div>';
+    html += '<div class="item"><div class="k">体重の減少率</div><div class="v">' +
+      (r.lossPct === null ? '−' : (r.lossPct > 0 ? '−' + r.lossPct : '+' + Math.abs(r.lossPct)) + '%') + '</div>' +
+      pill(r.weightOk) + '<div class="c">' +
+      (r.prevWeight === null ? '前回の判定測定がないため判定なし' : '前回 ' + r.prevWeight + 'kg → 今回 ' + rec.weight + 'kg（' + c.weightLossPct + '%以上減でクリア）') +
+      '</div></div>';
+    html += '</div>';
+
+    if (r.bpRefer) {
+      html += '<div class="msg warn">血圧が受診をすすめる目安（' + c.bpReferSystolic + '/' + c.bpReferDiastolic +
+        '以上）に当たっています。日を変えて測り直し、続くようなら医療機関や産業医に相談してください。</div>';
+    }
+    if (r.bmi !== null && r.bmi < c.bmiMin) {
+      html += '<div class="msg warn">BMIが' + c.bmiMin + '未満（低体重）です。無理な減量は控えてください。</div>';
+    }
+    $('result-body').innerHTML = html;
+  }
+
+  function renderCriteria(c) {
+    $('crit-list').innerHTML =
+      '<li><strong>血圧</strong>：上（収縮期）' + c.bpSystolicBelow + 'mmHg未満 かつ 下（拡張期）' + c.bpDiastolicBelow + 'mmHg未満</li>' +
+      '<li><strong>BMI</strong>：' + c.bmiMin + '以上' + c.bmiBelow + '未満（BMI＝体重kg÷身長m÷身長m）</li>' +
+      '<li><strong>体重</strong>：前回の判定測定（半年前）から' + c.weightLossPct + '%以上減少</li>';
+  }
+
+  // 入力中にBMIと血圧の目安をその場で表示
+  ['f-sys', 'f-dia', 'f-wt', 'f-ht', 'f-date'].forEach(function (id) { $(id).addEventListener('input', updateLive); });
+  function updateLive() {
+    var c = state.criteria; if (!c) return;
+    var parts = [];
+    var bmi = bmiOf(Number($('f-wt').value), Number($('f-ht').value));
+    if (bmi) parts.push('BMI <strong>' + bmi + '</strong> ' + pill(bmi >= c.bmiMin && bmi < c.bmiBelow));
+    var s = Number($('f-sys').value), d = Number($('f-dia').value);
+    if (s && d) parts.push('血圧 ' + pill(s < c.bpSystolicBelow && d < c.bpDiastolicBelow));
+    var m = Number(String($('f-date').value).split('-')[1]);
+    if (m) parts.push(state.data && state.data.judgeMonths.indexOf(m) !== -1
+      ? '<span class="pill ok">判定に使われます</span>' : '<span class="pill na">任意の記録</span>');
+    $('f-live').innerHTML = parts.join('　');
+  }
+
+  $('rec-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = $('rec-btn');
+    busy(btn, true, '保存中');
+    showMsg($('rec-msg'), '', '');
+    var input = {
+      date: $('f-date').value, systolic: $('f-sys').value, diastolic: $('f-dia').value,
+      weight: $('f-wt').value, height: $('f-ht').value, memo: $('f-memo').value
+    };
+    call('apiSaveRecord', state.token, input).then(function (data) {
+      renderMine(data);
+      $('f-sys').value = ''; $('f-dia').value = ''; $('f-wt').value = ''; $('f-memo').value = '';
+      updateLive();
+      showMsg($('rec-msg'), 'ok', fmtDate(input.date) + 'の記録を保存しました。');
+      state.admin = null; // 管理画面は次に開いたとき再読み込み
+    }).catch(function (err) {
+      if (!handleAuthError(err)) showMsg($('rec-msg'), 'err', err.message);
+    }).then(function () { busy(btn, false); });
+  });
+
+  /* ---------- 推移（グラフ＋表） ---------- */
+  function renderHistory(el, records) {
+    if (!records.length) { el.innerHTML = '<p class="sub">まだ記録がありません。</p>'; return; }
+    var html = lineChart(records, [
+      { key: 'systolic', label: '血圧（上）', color: 'var(--c-sys)' },
+      { key: 'diastolic', label: '血圧（下）', color: 'var(--c-dia)' }
+    ], 'mmHg');
+    html += lineChart(records, [{ key: 'weight', label: '体重', color: 'var(--c-wt)' }], 'kg');
+    html += '<div class="tblwrap" style="max-height:340px"><table><thead><tr><th>測定日</th><th>区分</th><th class="n">血圧</th><th class="n">体重</th><th class="n">BMI</th><th>メモ</th></tr></thead><tbody>';
+    records.slice().reverse().forEach(function (r) {
+      html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' +
+        (r.period ? '<span class="pill ok">' + esc(periodLabel(r.period)) + '判定</span>' : '<span class="muted">任意</span>') +
+        '</td><td class="n">' + r.systolic + '/' + r.diastolic + '</td><td class="n">' + r.weight + '</td><td class="n">' +
+        (r.bmi || '') + '</td><td>' + esc(r.memo) + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+    el.innerHTML = html;
+  }
+
+  function lineChart(records, series, unit) {
+    var W = 640, H = 230, L = 56, R = 16, T = 14, B = 34;
+    var vals = [];
+    series.forEach(function (s) { records.forEach(function (r) { if (r[s.key]) vals.push(r[s.key]); }); });
+    if (!vals.length) return '';
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    var pad = Math.max((max - min) * 0.15, 2);
+    min = Math.floor(min - pad); max = Math.ceil(max + pad);
+    var n = records.length;
+    var x = function (i) { return n === 1 ? (L + W - R) / 2 : L + (W - L - R) * i / (n - 1); };
+    var y = function (v) { return T + (H - T - B) * (1 - (v - min) / (max - min)); };
+    var svg = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(series.map(function (s) { return s.label; }).join('・')) + 'の推移">';
+    svg += '<g class="grid">';
+    for (var k = 0; k <= 3; k++) {
+      var v = min + (max - min) * k / 3, yy = y(v);
+      svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + yy + '" y2="' + yy + '"/><text x="' + (L - 8) + '" y="' + (yy + 7) + '" text-anchor="end">' + Math.round(v) + '</text>';
+    }
+    svg += '</g>';
+    var step = Math.max(1, Math.ceil(n / 4));
+    records.forEach(function (r, i) {
+      if (i % step === 0 || i === n - 1) svg += '<text x="' + x(i) + '" y="' + (H - 8) + '" text-anchor="' + (n > 1 && i === 0 ? 'start' : n > 1 && i === n - 1 ? 'end' : 'middle') + '">' + esc(fmtDate(r.date).slice(2)) + '</text>';
+    });
+    series.forEach(function (s) {
+      var pts = records.map(function (r, i) { return x(i) + ',' + y(r[s.key]); }).join(' ');
+      svg += '<polyline points="' + pts + '" fill="none" stroke="' + s.color + '" stroke-width="2.5" stroke-linejoin="round"/>';
+      records.forEach(function (r, i) {
+        svg += '<circle cx="' + x(i) + '" cy="' + y(r[s.key]) + '" r="' + (r.period ? 5 : 3.5) + '" fill="' + (r.period ? s.color : 'var(--surface)') + '" stroke="' + s.color + '" stroke-width="2"><title>' + esc(fmtDate(r.date) + ' ' + s.label + ' ' + r[s.key] + unit) + '</title></circle>';
+      });
+    });
+    svg += '</svg>';
+    var legend = '<div class="legend">' + series.map(function (s) { return '<span><i style="background:' + s.color + '"></i>' + esc(s.label) + '（' + unit + '）</span>'; }).join('') +
+      '<span class="muted">● 判定測定　○ 任意の記録</span></div>';
+    return svg + legend;
+  }
+
+  /* ---------- 管理（経理担当者） ---------- */
+  function loadAdmin(period) {
+    showMsg($('adm-msg'), 'info', '読み込み中…');
+    return call('apiAdminSummary', state.token, period || null).then(function (res) {
+      state.admin = res;
+      showMsg($('adm-msg'), '', '');
+      var sel = $('adm-period');
+      sel.innerHTML = res.periods.map(function (p) {
+        return '<option value="' + esc(p) + '"' + (p === res.summary.period ? ' selected' : '') + '>' + esc(periodLabel(p)) + '判定</option>';
+      }).join('');
+      renderAdmin();
+    }).catch(function (err) {
+      if (!handleAuthError(err)) showMsg($('adm-msg'), 'err', err.message);
+    });
+  }
+  $('adm-period').addEventListener('change', function () { $('adm-detail').hidden = true; loadAdmin(this.value); });
+  $('adm-only-missing').addEventListener('change', renderAdmin);
+
+  function renderAdmin() {
+    var s = state.admin.summary, st = s.stats;
+    $('adm-stats').innerHTML =
+      stat('提出', st.submitted, '/' + st.total + '人') +
+      stat('手当対象', st.eligible, '人') +
+      stat('クリア（血圧・BMI・体重）', st.bpOk + '・' + st.bmiOk + '・' + st.weightOk, '人') +
+      stat('受診をすすめる血圧', st.bpRefer, '人');
+    var only = $('adm-only-missing').checked;
+    var html = '<thead><tr><th>社員番号</th><th>氏名</th><th>測定日</th><th class="n">血圧</th><th>判定</th><th class="n">BMI</th><th>判定</th><th class="n">体重減少率</th><th>判定</th><th>手当</th></tr></thead><tbody>';
+    s.rows.forEach(function (r) {
+      if (only && r.submitted) return;
+      if (!r.submitted) {
+        html += '<tr class="click" data-id="' + esc(r.id) + '"><td>' + esc(r.id) + '</td><td>' + esc(r.name) + '</td><td colspan="7"><span class="pill warn">未提出</span></td><td><span class="pill na">−</span></td></tr>';
+        return;
+      }
+      html += '<tr class="click" data-id="' + esc(r.id) + '"><td>' + esc(r.id) + '</td><td>' + esc(r.name) + '</td><td>' + esc(fmtDate(r.record.date)) +
+        '</td><td class="n">' + r.record.systolic + '/' + r.record.diastolic + (r.bpRefer ? ' <span class="pill warn">要受診</span>' : '') +
+        '</td><td>' + pill(r.bpOk, '○', '×') + '</td><td class="n">' + r.bmi + '</td><td>' + pill(r.bmiOk, '○', '×') +
+        '</td><td class="n">' + (r.lossPct === null ? '−' : r.lossPct + '%') + '</td><td>' + pill(r.weightOk, '○', '×') +
+        '</td><td>' + (r.eligible ? '<span class="pill ok">対象</span>' : '<span class="pill na">対象外</span>') + '</td></tr>';
+    });
+    html += '</tbody>';
+    $('adm-table').innerHTML = html;
+    $('adm-table').querySelectorAll('tr.click').forEach(function (tr) {
+      tr.addEventListener('click', function () { openDetail(tr.dataset.id); });
+    });
+  }
+  function stat(k, v, small) { return '<div class="stat"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + ' <small>' + esc(small) + '</small></div></div>'; }
+
+  function openDetail(id) {
+    $('adm-detail').hidden = false;
+    $('adm-detail-title').textContent = '読み込み中…';
+    $('adm-detail-body').innerHTML = '';
+    call('apiAdminEmployeeRecords', state.token, id).then(function (res) {
+      $('adm-detail-title').textContent = res.employee.name + ' さんの推移';
+      renderHistory($('adm-detail-body'), res.records);
+      $('adm-detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }).catch(function (err) {
+      if (!handleAuthError(err)) { $('adm-detail-title').textContent = ''; showMsg($('adm-detail-body'), 'err', err.message); }
+    });
+  }
+  $('adm-detail-close').addEventListener('click', function () { $('adm-detail').hidden = true; });
+
+  $('adm-export').addEventListener('click', function () {
+    var btn = this, period = state.admin.summary.period;
+    busy(btn, true, '書き出し中');
+    call('apiAdminExport', state.token, period).then(function (st) {
+      showMsg($('adm-msg'), 'ok', periodLabel(period) + 'の判定結果を「判定結果」シートに書き出しました（手当対象 ' + st.eligible + '人）。');
+    }).catch(function (err) {
+      if (!handleAuthError(err)) showMsg($('adm-msg'), 'err', err.message);
+    }).then(function () { busy(btn, false); });
+  });
+
+  $('adm-csv').addEventListener('click', function () {
+    var s = state.admin.summary;
+    var mark = function (v) { return v === null ? '判定なし' : v ? '○' : '×'; };
+    var lines = [['判定期', '社員番号', '氏名', '測定日', '収縮期', '拡張期', '血圧判定', 'BMI', 'BMI判定', '体重', '前回体重', '減少率(%)', '体重判定', 'クリア数', '手当対象']];
+    s.rows.forEach(function (r) {
+      if (!r.submitted) { lines.push([s.periodLabel, r.id, r.name, '未提出', '', '', '', '', '', '', '', '', '', 0, '×']); return; }
+      lines.push([s.periodLabel, r.id, r.name, r.record.date, r.record.systolic, r.record.diastolic, mark(r.bpOk), r.bmi, mark(r.bmiOk),
+        r.record.weight, r.prevWeight === null ? '' : r.prevWeight, r.lossPct === null ? '' : r.lossPct, mark(r.weightOk), r.clearCount, r.eligible ? '○' : '×']);
+    });
+    var csv = '﻿' + lines.map(function (l) {
+      return l.map(function (v) { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',');
+    }).join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'health_' + s.period + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  /* ---------- 暗証番号の変更 ---------- */
+  $('pin-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    if ($('pin-new').value !== $('pin-new2').value) { showMsg($('pin-msg'), 'err', '確認用の暗証番号が一致しません。'); return; }
+    var btn = this.querySelector('button');
+    busy(btn, true, '変更中');
+    call('apiChangePin', state.token, $('pin-old').value, $('pin-new').value).then(function () {
+      this.reset();
+      showMsg($('pin-msg'), 'ok', '暗証番号を変更しました。');
+    }.bind(this)).catch(function (err) {
+      if (!handleAuthError(err)) showMsg($('pin-msg'), 'err', err.message);
+    }).then(function () { busy(btn, false); });
+  });
+
+  /* ---------- 起動 ---------- */
+  if (state.token) loadMine();
+})();
+</script>
+</body>
+</html>
